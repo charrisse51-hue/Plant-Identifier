@@ -1,5 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from ..models import PlantHistory
@@ -8,6 +9,7 @@ from ..serializers.history_serializers import PlantHistorySerializer
 
 class PlantHistoryListCreateView(generics.GenericAPIView):
     serializer_class = PlantHistorySerializer
+    permission_classes = [AllowAny]
 
     def get(self, request):
         user_id = request.query_params.get('user_id')

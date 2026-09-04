@@ -19,11 +19,14 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-qcow&9(oxjjf#hj47%fo9gb%+c
 DEBUG = True  # Force True for development
 
 ALLOWED_HOSTS = [
-    'localhost', '127.0.0.1',
+    'localhost',
+    '127.0.0.1',
     '10.0.2.2',          # Android emulator -> host loopback
+    '192.168.1.6',       # Local machine address used by the app
     '192.168.100.4',     # Local network
     '192.168.100.12',    # Local network
     '172.20.10.2',       # Mobile hotspot
+    '*',                 # Development fallback so emulator requests are accepted
 ]
 
 # Application definition - REMOVE DUPLICATES

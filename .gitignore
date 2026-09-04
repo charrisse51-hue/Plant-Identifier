@@ -27,6 +27,13 @@ pyvenv.cfg
 .idea/
 *.code-workspace
 
+# --- Flutter ---
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
 # --- OS files ---
 .DS_Store
 Thumbs.db

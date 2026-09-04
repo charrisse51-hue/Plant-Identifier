@@ -15,7 +15,18 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-    execute_from_command_line(sys.argv)
+
+    args = sys.argv
+    if len(args) == 1:
+        args = [args[0], 'runserver', '0.0.0.0:8000']
+    elif args[1] == 'runserver' and len(args) == 2:
+        args = [args[0], 'runserver', '0.0.0.0:8000']
+    elif args[1] == 'runserver' and len(args) == 3:
+        host_arg = args[2]
+        if host_arg.startswith('127.0.0.1') or host_arg.startswith('localhost'):
+            args[2] = '0.0.0.0:8000'
+
+    execute_from_command_line(args)
 
 
 if __name__ == '__main__':

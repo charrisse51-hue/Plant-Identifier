@@ -34,8 +34,8 @@ class UserRegistrationForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'password']
 
     def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
+        email = self.cleaned_data.get('email', '').strip().lower()
+        if User.objects.filter(email__iexact=email).exists() or User.objects.filter(username__iexact=email).exists():
             raise ValidationError("Email already exists")
         return email
 
@@ -79,10 +79,12 @@ class UserLoginForm(forms.Form):
         if email and password:
             try:
                 # Find the user by email and authenticate using username (email)
-                user_obj = User.objects.get(email=email)
+                user_obj = User.objects.filter(email__iexact=email).first()
+                if user_obj is None:
+                    raise User.DoesNotExist
                 username = user_obj.username
                 user = authenticate(username=username, password=password)
-                if user is None:
+                if user is None or not user.is_active:
                     raise ValidationError("Invalid email or password")
             except User.DoesNotExist:
                 raise ValidationError("Invalid email or password")

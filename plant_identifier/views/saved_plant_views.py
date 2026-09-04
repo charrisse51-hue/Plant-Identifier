@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
@@ -10,6 +10,7 @@ from ..serializers.saved_plant_serializers import SavedPlantSerializer
 
 class SavedPlantListCreateView(generics.GenericAPIView):
     serializer_class = SavedPlantSerializer
+    permission_classes = [AllowAny]
 
     def get(self, request):
         user_id = request.query_params.get('user_id')
@@ -35,6 +36,14 @@ class SavedPlantListCreateView(generics.GenericAPIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+        # Check for duplicate: same user + species_id
+        species_id = request.data.get('species_id')
+        if species_id and SavedPlant.objects.filter(user=user, species_id=species_id).exists():
+            return Response(
+                {'error': 'You have already saved this plant.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+
         serializer = SavedPlantSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=user)
@@ -45,6 +54,7 @@ class SavedPlantListCreateView(generics.GenericAPIView):
 class SavedPlantDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SavedPlantSerializer
     lookup_field = 'id'
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         user_id = self.request.query_params.get('user_id')

@@ -50,9 +50,6 @@ class PlantHistory(models.Model):
     is_correct = models.BooleanField(null=True, blank=True)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'species_id'], name='unique_history_per_user')
-        ]
         ordering = ['-identified_at']
 
     def __str__(self):
@@ -62,3 +59,4 @@ class PlantHistory(models.Model):
         else:
             name_display = "No User"
         return f"{self.common_name} ({name_display}) - {self.identified_at.strftime('%Y-%m-%d %H:%M')}"
+
