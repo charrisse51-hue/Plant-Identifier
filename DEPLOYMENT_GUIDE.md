@@ -25,12 +25,13 @@ You need a remote PostgreSQL database that remains active 24/7. **Supabase** or 
 3. Choose a project name (e.g. `plant-db`), enter a database password (remember this!), and pick the region closest to you (e.g., `Singapore` or `US East`).
 4. Click **Create new project** and wait ~1 minute for provisioning.
 5. Go to **Project Settings** (gear icon at bottom left) ➔ **Database**.
-6. Scroll down to **Connection String** ➔ Select **URI** (or Transaction Pooler / Session mode).
+6. Scroll down to **Connection String** ➔ Select the **Pooler** tab (or **Transaction / Session** mode), **NOT Direct**!
+   > **Why Pooler?** Supabase's Direct connection (`db.xxxx.supabase.co:5432`) uses IPv6 only. Cloud platforms like Render only support IPv4 outgoing connections. The Connection Pooler (`aws-0-[region].pooler.supabase.com:6543`) has full IPv4 support.
 7. Copy the URI string. It looks like:
-   ```
+   ```text
    postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
    ```
-   *(Replace `[YOUR-PASSWORD]` with the database password you created in step 3).*
+   *(For project `ujqtfdlbnsrihmaejmhqm`, it will be: `postgresql://postgres.ujqtfdlbnsrihmaejmhqm:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres`).*
 
 ### Option B: Using Neon
 1. Go to [neon.tech](https://neon.tech) and click **Sign Up** (Sign in with GitHub).
