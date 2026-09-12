@@ -4,7 +4,7 @@ services:
     runtime: python
     region: oregon
     plan: free
-    buildCommand: "./build.sh"
+    buildCommand: "chmod +x build.sh && ./build.sh"
     startCommand: "gunicorn plant.wsgi:application --log-file - --workers 2 --threads 4"
     envVars:
       - key: PYTHON_VERSION
