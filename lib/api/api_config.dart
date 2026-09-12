@@ -34,15 +34,18 @@ void setWorkingBaseUrl(String url) {
 /// Pass --dart-define=BACKEND_URL=https://your-backend.onrender.com during flutter build
 const String _injectedBackendUrl = String.fromEnvironment('BACKEND_URL', defaultValue: '');
 
-/// Default public production backend URL on cloud hosting
-/// You can update this default to match your exact deployed Render/cloud URL
-const String defaultProductionBackendUrl = 'https://plant-identifier-api.onrender.com';
+/// Default public production backend URL on cloud hosting.
+/// Leave empty for local development, or set this to your exact deployed Render/cloud URL.
+const String defaultProductionBackendUrl = '';
 
 String get productionBackendUrl {
   if (_injectedBackendUrl.isNotEmpty) {
     return _injectedBackendUrl.trim().replaceAll(RegExp(r'/+$'), '');
   }
-  return defaultProductionBackendUrl.trim().replaceAll(RegExp(r'/+$'), '');
+  if (defaultProductionBackendUrl.isNotEmpty) {
+    return defaultProductionBackendUrl.trim().replaceAll(RegExp(r'/+$'), '');
+  }
+  return '';
 }
 
 List<String> get apiBaseUrls {
