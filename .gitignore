@@ -18,9 +18,9 @@ ENV/
 .venv/
 Scripts/
 bin/
-Lib/
-Include/
 pyvenv.cfg
+!lib/
+!lib/**
 
 # --- IDE files ---
 .vscode/

@@ -41,8 +41,29 @@ class PlantHistoryListCreateView(generics.GenericAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request):
+        user_id = request.query_params.get('user_id') or request.data.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        ids = request.data.get('ids')
+        if ids and isinstance(ids, list):
+            PlantHistory.objects.filter(user=user, id__in=ids).delete()
+        else:
+            PlantHistory.objects.filter(user=user).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 class PlantHistoryDetailView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+
     def delete(self, request, id):
         user_id = request.query_params.get('user_id')
         if not user_id:

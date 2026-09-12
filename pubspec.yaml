@@ -53,6 +53,7 @@ dependencies:
   persistent_bottom_nav_bar_v2: ^6.1.0
   shared_preferences: ^2.5.5
   provider: ^6.1.5+1
+  flutter_image_compress: ^2.3.0
 
 dev_dependencies:
   flutter_test:

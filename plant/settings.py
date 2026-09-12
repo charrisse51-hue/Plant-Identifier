@@ -16,18 +16,13 @@ except ImportError:
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-qcow&9(oxjjf#hj47%fo9gb%+ch-v!!@o%(#wp*yb=q4pomupz')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # Force True for development
+DEBUG = os.getenv('DEBUG', 'True').strip().lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '10.0.2.2',          # Android emulator -> host loopback
-    '192.168.1.6',       # Local machine address used by the app
-    '192.168.100.4',     # Local network
-    '192.168.100.12',    # Local network
-    '172.20.10.2',       # Mobile hotspot
-    '*',                 # Development fallback so emulator requests are accepted
-]
+ALLOWED_HOSTS_ENV = os.getenv('ALLOWED_HOSTS', '').strip()
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS_ENV.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = ['*']
 
 # Application definition - REMOVE DUPLICATES
 INSTALLED_APPS = [
@@ -50,6 +45,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be first
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,12 +75,33 @@ TEMPLATES = [
 WSGI_APPLICATION = 'plant.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
+if DATABASE_URL:
+    try:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+                ssl_require=not DEBUG,
+            )
+        }
+    except Exception as _db_err:
+        print(f"[settings] Warning: failed to parse DATABASE_URL ({_db_err}), falling back to SQLite")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 # Authentication backends
 AUTHENTICATION_BACKENDS = [
@@ -114,6 +131,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     # Add any custom static directories here if needed
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files configuration for plant images
 MEDIA_URL = '/media/'
@@ -123,16 +141,33 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development
+CORS_ALLOW_ALL_ORIGINS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS_ENV = os.getenv('CORS_ALLOWED_ORIGINS', '').strip()
+if CORS_ALLOWED_ORIGINS_ENV:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in CORS_ALLOWED_ORIGINS_ENV.split(',') if o.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Trusted Origins for deployed frontend
+CSRF_TRUSTED_ORIGINS_ENV = os.getenv('CSRF_TRUSTED_ORIGINS', '').strip()
+if CSRF_TRUSTED_ORIGINS_ENV:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS_ENV.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://*.onrender.com',
+        'https://*.vercel.app',
+        'https://*.netlify.app',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
 
 CORS_ALLOW_HEADERS = [
     'accept',

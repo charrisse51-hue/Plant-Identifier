@@ -7,9 +7,17 @@ import random
 from PIL import Image
 import numpy as np
 
-import torch
-import torchvision.models as models
-from torchvision import transforms
+try:
+    import torch
+    import torchvision.models as models
+    from torchvision import transforms
+    _torch_available = True
+except Exception as _torch_err:
+    torch = None
+    models = None
+    transforms = None
+    _torch_available = False
+    print(f"[prediction_views] Torch unavailable ({_torch_err})")
 
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -71,19 +79,25 @@ def _corsify(request, response):
 # Deep Botanical Vision AI Classifier
 # =============================================================================
 
-_device = torch.device('cpu')
-_transform = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+if _torch_available and torch is not None and transforms is not None:
+    _device = torch.device('cpu')
+    _transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+else:
+    _device = None
+    _transform = None
 
 _vision_backbone = None
 _ph_reference_embeddings = None
 
 def _get_vision_backbone():
     global _vision_backbone
+    if not _torch_available or models is None:
+        return None
     if _vision_backbone is None:
         try:
             model = models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.DEFAULT)
@@ -172,6 +186,8 @@ def predict(request):
         return _corsify(request, HttpResponse(status=200))
     if request.method != "POST" or not request.FILES.get("image"):
         return _corsify(request, JsonResponse({"error": "POST an image with key 'image'."}, status=400))
+    if not _torch_available or torch is None:
+        return _corsify(request, JsonResponse({"error": "Visual AI engine is temporarily unavailable on this host."}, status=503))
 
     image_file = request.FILES["image"]
 

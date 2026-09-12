@@ -75,7 +75,15 @@ urlpatterns = [
     path('api/plants/tags/available/', views.get_available_tags, name='available-tags'),
 ]
 
-# Serve static and media files in DEBUG mode
+# Serve static and media files
+from django.views.static import serve
+from django.urls import re_path
+
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+        re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+    ]

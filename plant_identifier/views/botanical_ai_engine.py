@@ -320,6 +320,56 @@ PLANT_PROFILES = {
         'culinary': 'Inner clear gel used in desserts and juices; outer green rind is bitter and laxative.',
         'tips': 'Plant in unglazed terracotta clay pots for superior root aeration.',
     },
+    'spider plant': {
+        'name': 'Spider Plant (Chlorophytum comosum)',
+        'category': 'Pet-Safe Air-Purifying Houseplant',
+        'light': 'Bright, indirect sunlight. Tolerates light shade; harsh direct midday sun will scorch leaf tips.',
+        'watering': 'Water when the top 1–2 inches of soil feel dry, usually every 7–10 days indoors.',
+        'soil': 'Well-draining, loose potting mix enriched with perlite or pumice.',
+        'medicinal': 'Non-medicinal; highly rated air-purifying plant and completely non-toxic to pets.',
+        'culinary': 'Not edible.',
+        'tips': 'Produces trailing plantlets ("spiderettes") that can easily be rooted in water or moist soil.',
+    },
+    'calathea': {
+        'name': 'Calathea / Prayer Plant (Goeppertia / Calathea spp.)',
+        'category': 'Pet-Safe Tropical Foliage',
+        'light': 'Medium to bright indirect light. Direct sunlight quickly fades or burns patterned leaves.',
+        'watering': 'Water when the top 1 inch of soil feels dry. Keep soil consistently lightly moist, never soggy.',
+        'soil': 'Light, airy, moisture-retentive potting mix with peat moss, perlite, and coco coir.',
+        'medicinal': 'Not medicinal; non-toxic to cats and dogs.',
+        'culinary': 'Not edible.',
+        'tips': 'Sensitive to hard minerals in tap water; use filtered water or rainwater to avoid brown crispy edges.',
+    },
+    'philodendron': {
+        'name': 'Philodendron (Philodendron hederaceum / Philodendron spp.)',
+        'category': 'Tropical Indoor Houseplant',
+        'light': 'Medium to bright indirect light. Avoid harsh direct sun.',
+        'watering': 'Water when the top 1–2 inches of soil are dry to the touch, usually every 1–2 weeks.',
+        'soil': 'Chunky, well-aerated potting mix containing coco coir, pumice, and orchid bark.',
+        'medicinal': 'Not medicinal; toxic to dogs and cats if chewed.',
+        'culinary': 'Not edible.',
+        'tips': 'Easily propagated by placing stem cuttings with a node in a jar of water.',
+    },
+    'rubber plant': {
+        'name': 'Rubber Plant / Rubber Tree (Ficus elastica)',
+        'category': 'Broadleaf Indoor Tree',
+        'light': 'Bright indirect light with a few hours of gentle morning sun.',
+        'watering': 'Allow the top 2–3 inches of soil to dry out between waterings. Reduce in winter.',
+        'soil': 'Rich, well-draining potting soil with perlite.',
+        'medicinal': 'Not medicinal; milky sap can irritate skin and is toxic to pets.',
+        'culinary': 'Not edible.',
+        'tips': 'Wipe large glossy leaves with a damp cloth every few weeks to keep them free of dust.',
+    },
+    'fiddle leaf fig': {
+        'name': 'Fiddle Leaf Fig (Ficus lyrata)',
+        'category': 'Architectural Indoor Tree',
+        'light': 'Bright, filtered sunlight (at least 4–6 hours daily). Sensitive to low light.',
+        'watering': 'Water thoroughly only when the top 2 inches of soil feel completely dry.',
+        'soil': 'Nutrient-rich, well-draining indoor potting mix.',
+        'medicinal': 'Not medicinal.',
+        'culinary': 'Not edible.',
+        'tips': 'Avoid moving it frequently; sensitive to cold drafts and sudden changes in humidity.',
+    },
 }
 
 
@@ -374,6 +424,17 @@ def _match_plant_profile(query: str) -> Optional[dict]:
         'zamioculcas': 'zz plant',
         'aloe': 'aloe vera',
         'swiss cheese': 'monstera',
+        'spider plant': 'spider plant',
+        'chlorophytum': 'spider plant',
+        'calathea': 'calathea',
+        'prayer plant': 'calathea',
+        'maranta': 'calathea',
+        'philodendron': 'philodendron',
+        'rubber plant': 'rubber plant',
+        'rubber tree': 'rubber plant',
+        'ficus elastica': 'rubber plant',
+        'fiddle leaf': 'fiddle leaf fig',
+        'ficus lyrata': 'fiddle leaf fig',
     }
     for alias, target in aliases.items():
         if alias in q:
@@ -384,331 +445,447 @@ def _match_plant_profile(query: str) -> Optional[dict]:
 def generate_plant_answer(message: str, plant_name: str = '', scientific_name: str = '') -> str:
     """
     Intelligently analyzes the user's message and returns an expert, structured botanical reply.
-    Never repeats generic static text.
+    Strictly follows:
+    1. Direct answer first.
+    2. Answer the exact question, not a related topic.
+    3. Factual accuracy with calibrated confidence.
+    4. No generic lectures or unnecessary conversational follow-ups.
+    5. No repeating the user's question as a heading.
     """
-    q = f"{message.lower().strip()} {plant_name.lower()} {scientific_name.lower()}"
+    raw_msg = (message or '').strip()
+    q = f"{raw_msg.lower()} {plant_name.lower()} {scientific_name.lower()}".strip()
     profile = _match_plant_profile(q)
 
-    # 1. GREETINGS
-    if re.search(r'\b(hi|hello|hey|kamusta|kumusta|magandang|greetings|good morning|good afternoon|good evening)\b', q) and len(message.split()) <= 4:
+    # 1. GREETINGS (Short, polite intro only when strictly a greeting)
+    if re.search(r'^(hi|hello|hey|kamusta|kumusta|magandang araw|greetings|good morning|good afternoon|good evening)[!.\s]*$', raw_msg.lower()):
         return (
-            "🌱 **Mabuhay! I'm your AI Botanical & Plant Assistant.**\n\n"
-            "I'm here to answer any questions about your plants, including:\n"
-            "• **Plant Care**: Light requirements, soil mixes, and watering schedules.\n"
-            "• **Symptom Diagnosis**: Yellow leaves, brown tips, leaf curl, and root rot.\n"
-            "• **Pests & Diseases**: Getting rid of mealybugs, aphids, and spider mites.\n"
-            "• **Philippine Flora & DOH Herbs**: Lagundi, Sambong, Bayabas, Malunggay, Tawa-Tawa.\n"
-            "• **Propagation**: How to take cuttings and root plants in water.\n\n"
-            "What plant or gardening question can I help you with right now?"
+            "🌱 **Mabuhay! I'm your Botanical AI Assistant.**\n\n"
+            "Ask me anything about plant identification, care routines, watering, lighting, pest treatments, or Philippine flora."
         )
 
-    # 2. SPECIFIC PROFILE CARE QUESTIONS
+    # 2. EASIEST INDOOR PLANTS FOR BEGINNERS
+    if any(k in q for k in [
+        'easiest indoor', 'easy indoor', 'easiest plant', 'beginner plant',
+        'plants for beginner', 'plants for beginners', 'easy to care',
+        'low maintenance plant', 'pinakamadaling halaman', 'para sa beginner',
+        'easiest houseplant', 'easy houseplant'
+    ]):
+        return (
+            "🌿 **Easiest Indoor Plants for Beginners**\n\n"
+            "1. **Snake Plant**\n"
+            "   • Very low maintenance\n"
+            "   • Tolerates low light\n"
+            "   • Water only when the soil dries out\n\n"
+            "2. **Pothos**\n"
+            "   • Easy to grow\n"
+            "   • Tolerates different lighting conditions\n"
+            "   • Water when the top layer of soil feels dry\n\n"
+            "3. **ZZ Plant**\n"
+            "   • Handles low light\n"
+            "   • Drought tolerant\n"
+            "   • Doesn't need frequent watering\n\n"
+            "4. **Spider Plant**\n"
+            "   • Easy to care for\n"
+            "   • Grows well in bright, indirect light\n"
+            "   • Water when the soil begins to dry\n\n"
+            "5. **Peace Lily**\n"
+            "   • Good for indoor growing\n"
+            "   • Prefers indirect light\n"
+            "   • Needs more consistent moisture than Snake Plant or ZZ Plant"
+        )
+
+    # 3. SPECIFIC PLANT: DIRECT SUNLIGHT / LIGHT REQUIREMENTS
+    is_light_query = any(k in q for k in ['direct sun', 'direct sunlight', 'sunlight', 'sun', 'light', 'araw', 'sikat ng araw', 'shade', 'init'])
+    if profile and is_light_query:
+        p_name = profile['name'].split('(')[0].split('/')[0].strip()
+        low_p = p_name.lower()
+
+        if 'monstera' in q or 'monstera' in low_p:
+            return (
+                "Direct midday sunlight is generally not recommended for a Monstera because intense UV rays will scorch and brown the leaves, leaving unsightly bleached or crispy patches.\n\n"
+                "• **Optimal Lighting**: Bright, indirect sunlight (such as near an east- or south-facing window with sheer curtains) is ideal.\n"
+                "• **Gentle Morning Sun**: 1–2 hours of soft early morning sun is safe and can encourage fenestrations (leaf splits).\n"
+                "• **Low Light**: Monstera can survive lower light, but growth will slow down and leaves may remain smaller without splits."
+            )
+
+        if 'snake' in q or 'snake' in low_p:
+            return (
+                "Yes, a Snake Plant can tolerate direct sunlight, though it should be acclimated gradually.\n\n"
+                "• **Acclimation**: If moving it from a dim room to direct outdoor or window sun, transition it gradually over 1–2 weeks so the foliage does not burn.\n"
+                "• **Watering Adjustment**: In direct sun, the plant metabolizes water faster; check the soil more frequently, though still allow it to dry out completely.\n"
+                "• **Light Tolerance**: Snake Plants are exceptionally versatile and can adapt across nearly all light levels, from low light to direct sun."
+            )
+
+        if 'zz' in q or 'zz' in low_p:
+            return (
+                "Direct midday sunlight is not suitable for a ZZ Plant as it will easily scorch and yellow its glossy leaflets.\n\n"
+                "• **Best Lighting**: Low to bright indirect sunlight. It thrives remarkably well even under artificial fluorescent office lighting.\n"
+                "• **Sunburn Signs**: Bleached or crispy brown patches on leaves indicate excessive direct sun exposure."
+            )
+
+        if 'pothos' in q or 'pothos' in low_p:
+            return (
+                "Direct midday sunlight will scorch and fade Pothos leaves. Pothos thrives best in medium to bright indirect sunlight.\n\n"
+                "• **Variegation Needs**: Variegated types (like Golden or Marble Queen) need bright, filtered light to keep their patterns, but still shielded from harsh direct sun.\n"
+                "• **Sunburn Signs**: If leaves look washed out, pale, or have crispy brown spots, move it farther from the window."
+            )
+
+        if 'peace lily' in q or 'peace lily' in low_p:
+            return (
+                "No, a Peace Lily should not be placed in direct sunlight. Direct sun quickly bleaches the foliage and burns dry crispy leaf margins.\n\n"
+                "• **Best Location**: Low to medium indirect light. A north-facing window or a spot several feet away from a bright window is ideal.\n"
+                "• **Blooming**: Bright, filtered light encourages more white flower spathes without burning the foliage."
+            )
+
+        # General profile light guidance
+        if 'full' in profile['light'].lower():
+            return (
+                f"Yes, **{profile['name']}** thrives in direct tropical sunlight.\n\n"
+                f"• **Light Requirement**: {profile['light']}\n"
+                f"• **Care Note**: {profile['tips']}"
+            )
+        else:
+            return (
+                f"Direct midday sunlight is not recommended for **{profile['name']}** as harsh direct rays can scorch its leaves.\n\n"
+                f"• **Recommended Light**: {profile['light']}\n"
+                f"• **Care Note**: {profile['tips']}"
+            )
+
+    # 4. SPECIFIC PLANT: WATERING FREQUENCY & ROUTINE
+    is_water_query = any(k in q for k in ['water', 'watering', 'how often to water', 'how often should i water', 'when to water', 'dilig', 'paano diligan', 'tubig'])
+    if profile and is_water_query:
+        p_name = profile['name'].split('(')[0].split('/')[0].strip()
+        low_p = p_name.lower()
+
+        if 'snake' in q or 'snake' in low_p:
+            return (
+                "Water a Snake Plant only when the soil has dried out completely, usually every 2–3 weeks indoors, though the exact interval depends on light, temperature, pot size, and soil.\n\n"
+                "• **Seasonal Adjustment**: In winter or cooler rainy months, reduce watering to once every 3–4 weeks or once a month.\n"
+                "• **Moisture Check**: Insert your finger or a wooden skewer 2 inches into the soil; water only when completely dry.\n"
+                "• **Drainage**: Always use a pot with drainage holes so excess water never pools around the roots."
+            )
+
+        if 'monstera' in q or 'monstera' in low_p:
+            return (
+                "Water a Monstera every 1–2 weeks, allowing the top 2–3 inches of soil to dry out between waterings.\n\n"
+                "• **Environmental Factors**: In brighter light and warmer weather, it drinks faster; in lower light or cooler months, reduce watering.\n"
+                "• **Moisture Check**: Insert your finger 2 inches into the soil; water only when the top layer feels dry.\n"
+                "• **Drainage**: Always empty runoff water from saucers after 15 minutes to prevent root rot."
+            )
+
+        if 'zz' in q or 'zz' in low_p:
+            return (
+                "Water a ZZ Plant every 3–4 weeks once the soil has dried out completely throughout the pot.\n\n"
+                "• **Rhizome Water Storage**: ZZ Plants store moisture in underground potato-like rhizomes, making them exceptionally drought-resilient.\n"
+                "• **Overwatering Risk**: Overwatering is the biggest threat; when in doubt, it is always safer to wait another week.\n"
+                "• **Drainage**: Ensure the pot has free-flowing drainage holes."
+            )
+
+        if 'pothos' in q or 'pothos' in low_p:
+            return (
+                "Water a Pothos roughly once every 1–2 weeks when the top 1–2 inches of soil feel dry.\n\n"
+                "• **Thirst Indicator**: Pothos leaves will slightly droop when thirsty and quickly perk back up after being watered.\n"
+                "• **Overwatering Signs**: Limp, yellowing leaves with wet soil indicate overwatering or poor drainage."
+            )
+
+        if 'peace lily' in q or 'peace lily' in low_p:
+            return (
+                "Water a Peace Lily roughly once a week, keeping the soil lightly and consistently moist but never waterlogged.\n\n"
+                "• **Thirst Indicator**: Peace Lilies visibly droop when thirsty and recover quickly after watering.\n"
+                "• **Water Quality**: Sensitive to fluoride and chlorine in tap water; use filtered water or let tap water sit out for 24 hours."
+            )
+
+        if 'spider' in q or 'spider' in low_p:
+            return (
+                "Water a Spider Plant when the top 1–2 inches of soil feel dry, usually every 7–10 days.\n\n"
+                "• **Moisture Level**: Allow the soil to dry slightly between waterings; avoid constantly saturated soil.\n"
+                "• **Water Sensitivity**: Tap water fluoride can cause brown leaf tips; use rainwater or filtered water when possible."
+            )
+
+        # General profile watering guidance
+        return (
+            f"Water **{profile['name']}** {profile['watering'].lower()}\n\n"
+            f"• **Moisture Check**: Check the top 1–2 inches of soil before watering.\n"
+            f"• **Drainage**: Always ensure pots have drainage holes to prevent root waterlogging."
+        )
+
+    # 5. SPECIFIC PLANT: SOIL & PROPAGATION
     if profile:
-        # Check specific intent on the plant
-        if any(k in q for k in ['water', 'watering', 'dilig', 'paano diligan', 'tubig']):
+        if any(k in q for k in ['soil', 'lupa', 'potting mix', 'potting']):
             return (
-                f"💧 **Watering Guide for {profile['name']}:**\n\n"
-                f"• **Recommended Routine**: {profile['watering']}\n"
-                f"• **Sunlight Condition**: {profile['light']}\n"
-                f"• **Soil Requirement**: {profile['soil']}\n\n"
-                "💡 **Golden Rule**: Always test soil moisture by inserting your finger 1–2 inches deep. If dry, water thoroughly until water exits the bottom drainage hole!"
-            )
-        if any(k in q for k in ['light', 'sun', 'sunlight', 'araw', 'sikat ng araw', 'shade', 'init']):
-            return (
-                f"☀️ **Sunlight & Climate Requirements for {profile['name']}:**\n\n"
-                f"• **Sunlight Need**: {profile['light']}\n"
-                f"• **Category**: {profile['category']}\n"
-                f"• **Care Tip**: {profile['tips']}"
-            )
-        if any(k in q for k in ['soil', 'lupa', 'fertilizer', 'pataba', 'potting', 'repot', 'abono']):
-            return (
-                f"🪴 **Soil & Nutrient Guide for {profile['name']}:**\n\n"
-                f"• **Ideal Soil Mix**: {profile['soil']}\n"
+                f"Use {profile['soil'].lower()} for **{profile['name']}**.\n\n"
+                f"• **Drainage**: Ensure the pot has active drainage holes.\n"
                 f"• **Growing Tip**: {profile['tips']}"
             )
-        if any(k in q for k in ['medicinal', 'gamot', 'health', 'benefit', 'cure', 'tea', 'sugat', 'ubo', 'lunas', 'herbal', 'antiseptic', 'dahon']):
-            med = profile.get('medicinal', 'Consult an authoritative local herbal guide for verified medicinal uses.')
+        if any(k in q for k in ['propagate', 'propagation', 'cutting', 'magparami']):
             return (
-                f"🌿 **Medicinal Uses of {profile['name']}:**\n\n"
-                f"• **Health Benefits**: {med}\n"
-                f"• **Category**: {profile['category']}\n\n"
-                "⚠️ *Paalala: Para sa mga malulubhang karamdaman, laging sumangguni sa lisensyadong doktor o health center.*"
+                f"To propagate **{profile['name']}**:\n\n"
+                f"• **Method**: {profile['tips']}\n"
+                f"• **General Rule**: Use clean, sterilized shears and place cuttings in bright, indirect light until roots establish."
             )
-        if any(k in q for k in ['cook', 'eat', 'culinary', 'recipe', 'food', 'kain', 'lutuin']):
-            cul = profile.get('culinary', 'Not commonly consumed as food.')
-            return (
-                f"🍲 **Culinary Information for {profile['name']}:**\n\n"
-                f"• **Culinary Profile**: {cul}\n\n"
-                f"💡 *Care Tip*: {profile['tips']}"
-            )
-        # Full plant profile
-        return (
-            f"🌿 **Plant Profile & Care Guide: {profile['name']}**\n\n"
-            f"🏷️ **Category**: {profile['category']}\n\n"
-            f"☀️ **Light**: {profile['light']}\n\n"
-            f"💧 **Watering**: {profile['watering']}\n\n"
-            f"🪴 **Soil & Potting**: {profile['soil']}\n\n"
-            f"✨ **Expert Growing Tip**: {profile['tips']}\n\n"
-            "Would you like advice on pruning, propagating, or treating pests on this plant?"
-        )
 
-    # 3. SYMPTOM: YELLOW LEAVES
+    # 6. SYMPTOM: YELLOW LEAVES
     if any(k in q for k in ['yellow', 'yellowing', 'naninilaw', 'dilaw']):
         return (
-            "🍂 **Why Plant Leaves Turn Yellow & How to Fix It:**\n\n"
-            "1. **Overwatering (Most Common - ~80% of Cases)**:\n"
-            "   • *Symptoms*: Leaves turn pale yellow, feel soft/mushy, and soil stays wet for days.\n"
-            "   • *Remedy*: Stop watering immediately. Allow the top 2–3 inches of soil to completely dry. Ensure the pot has free-flowing drainage holes.\n\n"
-            "2. **Underwatering**:\n"
-            "   • *Symptoms*: Leaves turn yellow with crispy dry edges; soil shrinks from pot edges.\n"
-            "   • *Remedy*: Give the plant a deep, thorough soak until water drains from the bottom.\n\n"
-            "3. **Lack of Sunlight**:\n"
-            "   • *Symptoms*: Lower leaves lose chlorophyll as the plant reallocates energy to top growth.\n"
-            "   • *Remedy*: Move closer to bright indirect light or a morning sun window.\n\n"
-            "4. **Nitrogen Deficiency**:\n"
-            "   • *Symptoms*: Older lower leaves uniformly yellow from tips inward.\n"
-            "   • *Remedy*: Feed with balanced organic liquid fertilizer or vermicast."
+            "🍂 **Why Plant Leaves Turn Yellow**\n\n"
+            "Yellow leaves (chlorosis) are typically caused by watering issues, lighting stress, or nutrient deficiencies.\n\n"
+            "• **Overwatering (Most Common Cause)**\n"
+            "  Leaves become limp, soft, or pale yellow while the soil remains wet. Ensure drainage holes are unblocked and let the top 2–3 inches dry out.\n\n"
+            "• **Underwatering**\n"
+            "  Leaves turn yellow with dry, crispy edges, and the soil shrinks from the edges of the pot. Water deeply.\n\n"
+            "• **Inadequate Light**\n"
+            "  Lower or inner leaves yellow and drop as the plant prioritizes sunlight for top growth. Move to brighter indirect light.\n\n"
+            "• **Nitrogen Deficiency**\n"
+            "  Older lower leaves uniformly fade from green to yellow, while newer leaves stay small and pale. Apply a balanced fertilizer.\n\n"
+            "• **Natural Shedding**\n"
+            "  An occasional yellowing bottom leaf on an otherwise thriving plant is a normal part of its growth cycle."
         )
 
-    # 4. SYMPTOM: BROWN TIPS / CRISPY EDGES
+    # 7. SYMPTOM: BROWN TIPS / CRISPY EDGES
     if any(k in q for k in ['brown tip', 'brown edge', 'crispy', 'dry leaf', 'browning', 'nasusunog']):
         return (
-            "🍁 **Causes of Brown Leaf Tips & Edges:**\n\n"
-            "1. **Low Humidity (Dry Air)**:\n"
-            "   • Dry air from air-conditioners or heat draws moisture from leaf margins faster than roots can supply.\n"
-            "   • *Fix*: Mist leaves, group plants together, or use a pebble humidity tray.\n\n"
-            "2. **Tap Water Sensitivity (Chlorine/Fluoride)**:\n"
-            "   • Minerals in city tap water accumulate at leaf tips (common in Peace Lilies, Calatheas, and Spider Plants).\n"
-            "   • *Fix*: Switch to rainwater, filtered water, or let tap water sit out for 24 hours.\n\n"
-            "3. **Fertilizer Burn**:\n"
-            "   • Excess mineral salts scorch delicate root hairs.\n"
-            "   • *Fix*: Flush soil with plain water to wash away fertilizer salt buildup."
+            "🍁 **Causes of Brown Leaf Tips & Edges**\n\n"
+            "Brown tips and edges typically indicate low humidity, tap water sensitivity, or moisture stress.\n\n"
+            "• **Low Humidity**\n"
+            "  Dry indoor air causes leaf margins to lose moisture faster than roots can supply it. Mist foliage, group plants, or use a pebble tray.\n\n"
+            "• **Tap Water Sensitivity**\n"
+            "  Chemicals and minerals (chlorine, fluoride, or salts) in tap water accumulate at leaf tips. Switch to filtered water, rainwater, or let tap water sit out for 24 hours.\n\n"
+            "• **Underwatering**\n"
+            "  If the root ball dries out completely, leaf margins turn dry and crispy. Water thoroughly until moisture drains out the bottom.\n\n"
+            "• **Fertilizer Salt Buildup**\n"
+            "  Excess fertilizer salts scorch delicate root hairs. Flush the soil thoroughly with plain water every few months."
         )
 
-    # 5. SYMPTOM: LEAF CURLING
+    # 8. SYMPTOM: LEAF CURLING
     if any(k in q for k in ['curl', 'curling', 'kulubot', 'tiklop']):
         return (
-            "🍃 **Why Plant Leaves Curl & How to Solve It:**\n\n"
-            "1. **Curling Downward (Overwatering / Root Stress)**:\n"
-            "   • Roots suffocating in soggy soil cannot absorb oxygen, causing leaves to cup down.\n"
-            "   • *Fix*: Check drainage. Let soil dry out before watering again.\n\n"
-            "2. **Curling Inward / Upward (Dehydration or Heat Stress)**:\n"
-            "   • The plant curls to reduce exposed surface area and conserve moisture.\n"
-            "   • *Fix*: Water thoroughly and move away from scorching midday sun or heat sources.\n\n"
-            "3. **Hidden Pests**:\n"
-            "   • Aphids and spider mites suck sap from leaf undersides, causing distorted curled foliage.\n"
-            "   • *Fix*: Inspect undersides with a flashlight and spray with neem oil soap solution."
+            "🍃 **Why Plant Leaves Curl**\n\n"
+            "Leaves curl in response to moisture imbalance, heat, direct sun, or pest activity.\n\n"
+            "• **Underwatering or Low Humidity**\n"
+            "  Leaves curl inward or roll up to conserve moisture. Check the soil moisture and water if dry.\n\n"
+            "• **Overwatering & Root Stress**\n"
+            "  Leaves curl downward and feel heavy or limp because damaged roots cannot take in oxygen. Allow soil to dry before watering.\n\n"
+            "• **Heat or Draft Stress**\n"
+            "  Sudden temperature swings, hot drafts, or direct air-conditioner airflow trigger curling. Move to a stable location.\n\n"
+            "• **Hidden Pests**\n"
+            "  Tiny pests like spider mites, thrips, or aphids feeding on the undersides of leaves cause curling and distorted growth. Inspect undersides with a light."
         )
 
-    # 6. SYMPTOM: DROOPING / WILTING / ROOT ROT
+    # 9. SYMPTOM: DROOPING / WILTING / ROOT ROT
     if any(k in q for k in ['wilt', 'wilting', 'droop', 'drooping', 'nalalanta', 'lanta', 'root rot', 'nabubulok']):
         return (
-            "🥀 **Diagnosing Drooping & Wilting Plants:**\n\n"
-            "1. **Perform the Finger Moisture Test First!**:\n"
-            "   • **If soil is Bone Dry**: Dehydration! Water deeply until water runs through drainage holes.\n"
-            "   • **If soil is Soaking Wet**: **Root Rot!** Rotted roots cannot drink water, so the plant wilts as if thirsty.\n\n"
-            "2. **How to Treat Root Rot**:\n"
-            "   • Unpot plant and rinse roots.\n"
-            "   • Trim all black, mushy, or foul-smelling roots with sterilized shears.\n"
-            "   • Dip roots in diluted 3% hydrogen peroxide solution (1 part peroxide to 4 parts water).\n"
-            "   • Repot in fresh, dry, well-aerated potting mix with extra pumice/CRH."
+            "🥀 **Why Your Plant Is Drooping**\n\n"
+            "Drooping is caused by a loss of internal water pressure, resulting from either severe underwatering or root rot from overwatering.\n\n"
+            "1. **Check Soil Moisture First**\n"
+            "   • If the soil is bone dry: The plant is thirsty. Water deeply until it runs out the drainage holes; it will perk up within a few hours.\n"
+            "   • If the soil is wet or soggy: The plant is suffering from root rot. Waterlogged roots have rotted and cannot absorb water, so the plant wilts as if dehydrated.\n\n"
+            "2. **Treating Root Rot**\n"
+            "   • Remove the plant from its pot and inspect the roots.\n"
+            "   • Trim away all black, mushy, or foul-smelling roots with sterilized shears.\n"
+            "   • Repot in fresh, well-aerated potting soil and hold back on watering until new roots establish."
         )
 
-    # 7. PESTS (Mealybugs, Aphids, Spider Mites, Fungus Gnats, Scale)
+    # 10. PESTS (Mealybugs, Aphids, Spider Mites, Fungus Gnats, Scale)
     if any(k in q for k in ['pest', 'bug', 'aphid', 'mealybug', 'mite', 'gnat', 'scale', 'whitefly', 'peste', 'insekto']):
         return (
-            "🐛 **Organic Plant Pest Identification & Treatment Guide:**\n\n"
-            "• **Mealybugs** (Cottony white fluffy clusters in leaf crevices):\n"
-            "  *Treatment*: Dip a cotton swab in 70% isopropyl alcohol and dab directly on pests. Spray weekly with neem oil.\n\n"
-            "• **Spider Mites** (Fine webbing and yellow speckles under leaves):\n"
-            "  *Treatment*: Wash foliage in the shower, boost humidity, and spray with insecticidal soap.\n\n"
-            "• **Fungus Gnats** (Tiny black flies hovering around topsoil):\n"
-            "  *Treatment*: Allow top 2 inches of soil to completely dry out. Sprinkle ground cinnamon on soil and use yellow sticky cards.\n\n"
-            "• **Aphids** (Clusters of tiny green/black insects on soft new buds):\n"
-            "  *Treatment*: Blast off with a sharp water jet, then spray with soapy water solution.\n\n"
-            "🌿 **All-Natural DIY Neem Oil Spray Recipe**:\n"
-            "• 1 liter lukewarm water\n"
-            "• 1 teaspoon pure cold-pressed neem oil\n"
-            "• 1/2 teaspoon mild dish soap\n\n"
-            "*(Shake thoroughly and spray leaves in late afternoon to avoid sun scorch)*"
+            "🐛 **Identifying & Treating Common Plant Pests**\n\n"
+            "The most effective treatment depends on the specific pest:\n\n"
+            "• **Mealybugs (White, cotton-like fuzz in crevices)**\n"
+            "  Dab individual bugs with a cotton swab dipped in 70% rubbing alcohol. Follow up with weekly neem oil spray.\n\n"
+            "• **Spider Mites (Fine webbing & speckling under leaves)**\n"
+            "  Rinse foliage under a gentle shower, then spray thoroughly with insecticidal soap or neem oil, covering leaf undersides.\n\n"
+            "• **Fungus Gnats (Tiny black flies around the soil)**\n"
+            "  Allow the top 2 inches of soil to dry out completely. Place yellow sticky traps near the pot to catch adults.\n\n"
+            "• **Aphids (Clusters of green or black soft bugs on new growth)**\n"
+            "  Spray off with a strong stream of water, then treat with insecticidal soap.\n\n"
+            "• **Organic Neem Oil Spray Recipe**\n"
+            "  Mix 1 teaspoon pure cold-pressed neem oil and 1/2 teaspoon mild dish soap into 1 liter of warm water. Spray weekly in late afternoon."
         )
 
-    # 7.5. PHILIPPINE DOH HERBAL MEDICINES & HEALTH SYMPTOMS
-    # Cough, Colds, Asthma, Phlegm, Sore Throat
-    if any(k in q for k in ['ubo', 'sipon', 'cough', 'cold', 'asthma', 'hika', 'plema', 'lalamunan', 'sore throat']):
+    # 11. GENERAL WATERING GUIDE
+    if any(k in q for k in ['how often to water', 'how often should i water', 'when to water', 'watering frequency', 'how to water', 'gaano kadalas magdilig', 'pagdidilig']):
         return (
-            "🌿 **Mga Halamang Gamot sa Ubo, Sipon, at Hika (Cough & Cold Remedies):**\n\n"
-            "1. **Lagundi (*Vitex negundo*) — DOH Approved #1 Gamot sa Ubo**:\n"
-            "   • *Paano gamitin*: Magpakulo ng 1/2 basong sariwang tinadtad na dahon sa 2 basong tubig sa loob ng 15 minuto (walang takip).\n"
-            "   • *Inumin*: 1/3 baso 3 beses bawat araw. Mabisang pampaluwag ng plema at ginhawa sa hika.\n\n"
-            "2. **Oregano (*Coleus amboinicus*)**:\n"
-            "   • *Paano gamitin*: Hugasan ang mga sariwang dahon, pigain ang katas (extract), at ihalo sa 1 kutsaritang purong pulot-pukyutan (honey) o kalamansi.\n"
-            "   • *Epekto*: Napakagaling magpawala ng makating ubo at bara sa dibdib.\n\n"
-            "3. **Kalamansi (*Citrus microcarpa*) na may Maligamgam na Tubig at Honey**:\n"
-            "   • Likas na mayaman sa Vitamin C upang palakasin ang immune system laban sa trangkaso at sipon.\n\n"
-            "⚠️ *Paalala: Kung ang ubo ay lampas 1–2 linggo na o may kasamang mataas na lagnat, kumonsulta agad sa doktor.*"
+            "💧 **How Often to Water Plants**\n\n"
+            "Watering frequency depends on the plant species, sunlight, temperature, humidity, and pot size. Rather than sticking to a fixed calendar schedule, water based on soil moisture.\n\n"
+            "• **The Finger Moisture Test**\n"
+            "  Insert your index finger 1–2 inches into the soil. If it feels cool and damp, wait. If dry, water thoroughly.\n\n"
+            "• **Succulents & Cacti (e.g. Snake Plant, ZZ Plant)**\n"
+            "  Allow the soil to dry out 100% between waterings (usually every 2–4 weeks).\n\n"
+            "• **Tropical Houseplants (e.g. Monstera, Pothos, Philodendron)**\n"
+            "  Allow the top 1–2 inches of soil to dry before watering (usually every 1–2 weeks).\n\n"
+            "• **Moisture-Loving Plants (e.g. Ferns, Peace Lily)**\n"
+            "  Keep the soil lightly and consistently moist, never waterlogged.\n\n"
+            "• **Drainage**\n"
+            "  Always use pots with drainage holes and empty saucers after 15 minutes to prevent standing water around the roots."
         )
 
-    # Wounds, Cuts, Antiseptic, Circumcision
-    if any(k in q for k in ['sugat', 'wound', 'cut', 'tuli', 'nana', 'antiseptic', 'gasgas']):
+    # 12. PET-SAFE PLANTS
+    if any(k in q for k in ['pet', 'cat', 'dog', 'aso', 'pusa']) and any(k in q for k in ['safe', 'non-toxic', 'toxic', 'poison']):
         return (
-            "🌿 **Mga Halamang Gamot sa Sugat at Panghugas (Antiseptic Wash):**\n\n"
-            "1. **Dahon ng Bayabas (*Psidium guajava*) — DOH Approved Antiseptic**:\n"
-            "   • *Paano gamitin*: Magpakulo ng 10–15 pirasong sariwang dahon ng bayabas sa 1 litrong tubig sa loob ng 10–15 minuto.\n"
-            "   • *Gamit*: Palamigin hanggang maging maligamgam. Gamitin bilang panghugas sa sugat, bagong tuli, o panmumog (mouthwash) para sa namamagang gilagid at singaw.\n\n"
-            "2. **Aloe Vera / Sabila**:\n"
-            "   • Ang sariwang gel ay nagpapabilis ng paghilom ng mabababaw na galos, paso sa balat (burns), at sunburn."
+            "🐾 **Best Pet-Safe Houseplants (Non-Toxic to Cats & Dogs)**\n\n"
+            "1. **Spider Plant (*Chlorophytum comosum*)**\n"
+            "   • Very resilient, air-purifying, and 100% non-toxic to pets\n"
+            "   • Thrives in bright indirect light\n\n"
+            "2. **Boston Fern (*Nephrolepis exaltata*)**\n"
+            "   • Lush green fronds safe for cats and dogs\n"
+            "   • Loves bathroom humidity\n\n"
+            "3. **Calathea / Prayer Plant**\n"
+            "   • Beautiful patterned foliage completely safe for pets\n"
+            "   • Prefers medium indirect light\n\n"
+            "4. **Parlor Palm / Areca Palm**\n"
+            "   • Elegant tropical palms with zero toxicity\n"
+            "   • Adaptable to indoor living\n\n"
+            "5. **Peperomia (Watermelon Peperomia / Baby Rubber Plant)**\n"
+            "   • Waxy, compact foliage safe for pets\n"
+            "   • Drought-tolerant and low maintenance\n\n"
+            "⚠️ *Toxic to avoid around pets: Lilies, Pothos, Monstera, Philodendron, and ZZ Plant.*"
         )
 
-    # Kidney Stones, Diuretic, UTI
-    if any(k in q for k in ['bato sa bato', 'kidney stone', 'kidney', 'ihi', 'uti', 'manas', 'edema']):
+    # 13. LOW-LIGHT PLANTS
+    if any(k in q for k in ['low light', 'dim', 'dark', 'bedroom', 'dilim', 'loob ng bahay']):
         return (
-            "🌿 **Halamang Gamot sa Bato at Pantog (Kidney & Diuretic):**\n\n"
-            "• **Sambong (*Blumea balsamifera*) — DOH Approved Diuretic**:\n"
-            "  • *Gamit*: Napatunayang siyentipiko na nakatutulong magtunaw ng mga bato sa bato (calcium oxalate kidney stones) at tumutulong sa madalas na pag-ihi upang maiwasan ang manas.\n"
-            "  • *Paano gamitin*: Pakuluan ang tinadtad na dahon (1 basong dahon sa 2 basong tubig sa loob ng 15 minuto). Inumin 3 beses isang araw habang umiinom din ng maraming malinis na tubig."
+            "🌑 **Best Houseplants for Low Light & Shady Rooms**\n\n"
+            "1. **ZZ Plant (*Zamioculcas zamiifolia*)**\n"
+            "   • Thrives in dim rooms and under fluorescent office lights\n"
+            "   • Water only once a month\n\n"
+            "2. **Snake Plant (*Dracaena trifasciata*)**\n"
+            "   • Extremely hardy; tolerates low light and dry indoor air\n"
+            "   • Water only when the soil is completely dry\n\n"
+            "3. **Cast Iron Plant (*Aspidistra elatior*)**\n"
+            "   • True to its name, virtually indestructible in deep shade\n"
+            "   • Water when the topsoil dries out\n\n"
+            "4. **Pothos (*Epipremnum aureum*)**\n"
+            "   • Adaptable trailing vine that handles low light well\n"
+            "   • Water when the top 1–2 inches feel dry\n\n"
+            "5. **Peace Lily (*Spathiphyllum*)**\n"
+            "   • Glossy green foliage that tolerates low light\n"
+            "   • Droops clearly when thirsty and bounces back after watering"
         )
 
-    # Fungal Skin Infections, Buni, An-an, Alipunga
-    if any(k in q for k in ['buni', 'an-an', 'alipunga', 'ringworm', 'kati-kati', 'galis', 'fungal']):
+    # 14. MOSQUITO-REPELLING PLANTS
+    if any(k in q for k in ['mosquito', 'lamok', 'repel']):
         return (
-            "🌿 **Halamang Gamot sa Buni, An-an, at Alipunga (Antifungal):**\n\n"
-            "• **Akapulko / Katanda (*Senna alata*) — DOH Approved Antifungal**:\n"
-            "  • *Gamit*: Mabisa laban sa mga impeksyong fungal sa balat tulad ng buni (ringworm), an-an (tinea versicolor), at alipunga (athlete's foot).\n"
-            "  • *Paano gamitin*: Magdikdik ng sariwang dahon hanggang lumabas ang katas. Ipahid ang katas direkta sa apektadong balat 2 beses maghapon matapos maglinis."
+            "🦟 **Natural Mosquito-Repelling Plants**\n\n"
+            "1. **Citronella Grass**\n"
+            "   • Natural citrus aroma masks scents that attract mosquitoes\n"
+            "   • Thrives in full sun\n\n"
+            "2. **Lemongrass (Tanglad)**\n"
+            "   • Contains high natural citronellal levels\n"
+            "   • Great for garden beds or sunny patio containers\n\n"
+            "3. **Marigold (Amarillo)**\n"
+            "   • Contains pyrethrum, an organic compound bugs avoid\n"
+            "   • Needs full sun and well-draining soil\n\n"
+            "4. **Rosemary & Basil**\n"
+            "   • Pungent essential oils act as a natural insect deterrent\n"
+            "   • Thrives on sunny windowsills and balconies\n\n"
+            "5. **Peppermint**\n"
+            "   • Strong menthol aroma repels mosquitoes, ants, and spiders\n"
+            "   • Grow in containers to control spreading"
         )
 
-    # Stomach ache, Diarrhea, Abdominal Cramps
-    if any(k in q for k in ['sakit ng tiyan', 'tiyan', 'stomach', 'cramp', 'pagtatae', 'diarrhea', 'lbm']):
+    # 15. PHILIPPINE DOH HERBAL MEDICINES & HEALTH SYMPTOMS
+    if any(k in q for k in ['ubo', 'sipon', 'cough', 'cold', 'asthma', 'hika', 'plema', 'sore throat']):
         return (
-            "🌿 **Halamang Gamot sa Sakit ng Tiyan at Pagtatae:**\n\n"
-            "1. **Tsaang Gubat (*Carmona retusa*) — DOH Approved Antispasmodic**:\n"
-            "   • *Gamit*: Pampahupa ng kabag, pulikat o kirot sa tiyan (colic cramps).\n"
-            "   • *Paano gamitin*: Pakuluan ang dahon sa tubig at inumin na parang tsaa.\n\n"
-            "2. **Dahon ng Bayabas (*Psidium guajava*)**:\n"
-            "   • *Gamit*: Likas na astringent na nagpapatigil ng acute na pagtatae (diarrhea)."
+            "🌿 **Mga Halamang Gamot sa Ubo, Sipon, at Hika:**\n\n"
+            "1. **Lagundi (*Vitex negundo*) — DOH Approved Gamot sa Ubo**\n"
+            "   • Pakuluan ang 1/2 basong sariwang tinadtad na dahon sa 2 basong tubig sa loob ng 15 minuto.\n"
+            "   • Uminom ng 1/3 baso 3 beses bawat araw.\n\n"
+            "2. **Oregano (*Coleus amboinicus*)**\n"
+            "   • Pigain ang katas ng sariwang dahon at ihalo sa 1 kutsaritang honey o kalamansi.\n\n"
+            "3. **Kalamansi (*Citrus microcarpa*)**\n"
+            "   • Likas na mayaman sa Vitamin C; inumin na may maligamgam na tubig at honey.\n\n"
+            "⚠️ *Paalala: Kung ang ubo ay lampas 1–2 linggo na o may mataas na lagnat, kumonsulta agad sa doktor.*"
         )
 
-    # High Uric Acid, Gout, Arthritis
-    if any(k in q for k in ['uric acid', 'gout', 'rayuma', 'arthritis', 'kasu-kasuan']):
+    if any(k in q for k in ['sugat', 'wound', 'cut', 'tuli', 'antiseptic']):
         return (
-            "🌿 **Halamang Gamot sa Uric Acid at Gout:**\n\n"
-            "• **Ulasimang Bato / Pansit-pansitan (*Peperomia pellucida*) — DOH Approved**:\n"
-            "  • *Gamit*: Pinapababa ang mataas na antas ng uric acid sa dugo upang maiwasan ang pamamaga ng kasukasuan at gout.\n"
-            "  • *Paano kainin*: Pwedeng kainin nang sariwa bilang ensalada (salad) na may suka o kalamansi, o pakuluan ang 1 1/2 basong sariwang dahon sa 2 basong tubig sa loob ng 15 minuto."
+            "🌿 **Mga Halamang Gamot sa Sugat at Panghugas:**\n\n"
+            "1. **Dahon ng Bayabas (*Psidium guajava*) — DOH Approved Antiseptic**\n"
+            "   • Pakuluan ang 10–15 pirasong sariwang dahon sa 1 litrong tubig sa loob ng 10–15 minuto.\n"
+            "   • Gamitin ang maligamgam na sabaw bilang panghugas sa sugat o mumog sa singaw.\n\n"
+            "2. **Aloe Vera / Sabila**\n"
+            "   • Ang sariwang gel ay nagpapabilis ng paghilom ng mabababaw na galos at minor burns."
         )
 
-    # Blood Sugar, Diabetes
-    if any(k in q for k in ['asukal sa dugo', 'diabetes', 'blood sugar']):
+    if any(k in q for k in ['bato sa bato', 'kidney stone', 'kidney', 'ihi', 'uti']):
         return (
-            "🌿 **Halamang Gamot Pantulong sa Diabetes / Sugar Management:**\n\n"
-            "• **Ampalaya (*Momordica charantia*) — DOH Approved**:\n"
-            "  • *Gamit*: Naglalaman ng Charantin at polypeptide-p (halamang insulin) na nagpapanatili ng tamang lebel ng asukal sa dugo.\n"
-            "  • *Paano gamitin*: Maglaga ng dahon ng ampalaya at inumin ang sabaw, o isama ang bunga at talbos sa regular na lutuin tulad ng Pinakbet."
+            "🌿 **Halamang Gamot sa Bato at Pantog:**\n\n"
+            "• **Sambong (*Blumea balsamifera*) — DOH Approved Diuretic**\n"
+            "  • Napatunayang siyentipiko na nakatutulong magtunaw ng calcium oxalate kidney stones.\n"
+            "  • Pakuluan ang 1 basong tinadtad na dahon sa 2 basong tubig sa loob ng 15 minuto. Inumin 3 beses isang araw habang umiinom ng maraming tubig."
         )
 
-    # General Herbal Medicine / Halamang Gamot
-    if any(k in q for k in ['halamang gamot', 'herbal', 'medicinal', 'lunas']):
+    if any(k in q for k in ['buni', 'an-an', 'alipunga', 'ringworm', 'kati-kati']):
         return (
-            "🌿 **Ang 10 Halamang Gamot na Aprubado ng DOH (Department of Health):**\n\n"
-            "1. **Lagundi**: Para sa ubo, sipon, hika, at lagnat.\n"
-            "2. **Sambong**: Pampatunaw ng kidney stones at pampaihi.\n"
-            "3. **Akapulko**: Pang-alis ng buni, an-an, at alipunga.\n"
-            "4. **Bayabas**: Panghugas ng sugat at gamot sa pagtatae.\n"
-            "5. **Ampalaya**: Pantulong sa pagpapababa ng blood sugar.\n"
-            "6. **Ulasimang Bato**: Para sa rayuma, gout, at mataas na uric acid.\n"
-            "7. **Tsaang Gubat**: Para sa pananakit ng tiyan at kabag.\n"
-            "8. **Bawang**: Pampababa ng cholesterol at presyon ng dugo.\n"
-            "9. **Niyog-niyogan**: Pang-purga laban sa bulate sa tiyan.\n"
-            "10. **Yerba Buena**: Pampawala ng kirot at sakit ng ulo.\n\n"
-            "💡 *Alin sa mga ito ang nais mong malaman ang tamang paraan ng paghahanda?*"
+            "🌿 **Halamang Gamot sa Buni, An-an, at Alipunga:**\n\n"
+            "• **Akapulko (*Senna alata*) — DOH Approved Antifungal**\n"
+            "  • Mabisa laban sa mga impeksyong fungal sa balat tulad ng buni at alipunga.\n"
+            "  • Magdikdik ng sariwang dahon hanggang lumabas ang katas at ipahid sa apektadong balat 2 beses maghapon."
         )
 
-    # 8. PROPAGATION & CUTTINGS
-    if any(k in q for k in ['propagate', 'propagation', 'cutting', 'rooting', 'itapon', 'magtanim ng sanga', 'multiply']):
+    # 16. FULL SPECIFIC PLANT PROFILE (If plant matched and no sub-topic filter was hit)
+    if profile:
         return (
-            "🌱 **Step-by-Step Plant Propagation Master Guide:**\n\n"
-            "**Method 1: Water Propagation (Best for Pothos, Monstera, Philodendron, Herbs)**\n"
-            "1. Find a healthy stem with at least 1–2 **nodes** (small brown bumps where leaves emerge).\n"
-            "2. Make a clean cut 1/4 inch below a node using sterilized shears.\n"
-            "3. Strip lower leaves so no foliage is submerged under water.\n"
-            "4. Place in a clear jar of clean water in bright, indirect light.\n"
-            "5. Refresh water every 5–7 days. When roots reach 2–3 inches (3–4 weeks), transplant into soil!\n\n"
-            "**Method 2: Soil Cuttings (Best for Succulents, Snake Plant, Mayana)**\n"
-            "1. Take stem or leaf cuttings.\n"
-            "2. Let the cut end **callus over** in the shade for 1–2 days to prevent rotting.\n"
-            "3. Insert into moist sandy potting mix and keep lightly damp until new roots take hold."
+            f"🌿 **{profile['name']}**\n\n"
+            f"• **Light**: {profile['light']}\n"
+            f"• **Watering**: {profile['watering']}\n"
+            f"• **Soil**: {profile['soil']}\n"
+            f"• **Growing Tip**: {profile['tips']}"
         )
 
-    # 9. SOIL, FERTILIZER & REPOTTING
-    if any(k in q for k in ['soil', 'potting mix', 'lupa', 'fertilizer', 'pataba', 'repot', 'repotting', 'compost', 'npk', 'crh']):
+    # 17. PROPAGATION GENERAL
+    if any(k in q for k in ['propagate', 'propagation', 'cutting', 'magparami']):
         return (
-            "🪴 **Soil Mix, Fertilizer & Repotting Essentials:**\n\n"
-            "**1. Ideal Tropical Potting Soil Recipe (Philippine Climate)**:\n"
-            "• **40% Garden Soil (Lupa)**: Nutrient foundation.\n"
-            "• **30% Carbonized Rice Hull (CRH / Ipa)**: Provides aeration and prevents compaction.\n"
-            "• **20% Coco Peat / Coco Coir**: Retains optimal moisture without waterlogging.\n"
-            "• **10% Vermicast / Compost**: Slow-release organic plant food.\n\n"
-            "**2. When to Repot**:\n"
-            "• Roots growing out of bottom drainage holes.\n"
-            "• Water runs straight through without absorbing.\n"
-            "• Growth stalls despite bright light and warm season.\n"
-            "*(Always choose a new pot only 1–2 inches larger in diameter)*\n\n"
-            "**3. Fertilizing Rule**:\n"
-            "• Feed during active growing periods (every 2–4 weeks) with balanced 14-14-14 or organic worm tea diluted to half strength."
+            "🌱 **Plant Propagation Basics**\n\n"
+            "**Water Propagation (Best for Pothos, Monstera, Philodendron)**\n"
+            "1. Cut a healthy stem 4–6 inches long just below a leaf node.\n"
+            "2. Remove lower leaves so only the stem is submerged.\n"
+            "3. Place in clean water in bright, indirect light; refresh water weekly.\n"
+            "4. Transplant into potting soil once roots reach 2 inches.\n\n"
+            "**Soil Cuttings (Best for Succulents & Snake Plants)**\n"
+            "1. Take stem or leaf cuttings and allow the cut end to callous for 1–2 days.\n"
+            "2. Insert into moist, gritty soil mix and keep lightly damp until rooted."
         )
 
-    # 10. RECOMMENDATIONS
-    if any(k in q for k in ['recommend', 'suggestion', 'best plant', 'what plant should i', 'anong halaman', 'magandang halaman']):
-        if any(k in q for k in ['pet', 'cat', 'dog', 'aso', 'pusa', 'safe']):
-            return (
-                "🐾 **Top Pet-Safe Plants (Non-Toxic to Cats & Dogs):**\n\n"
-                "1. **Spider Plant (*Chlorophytum comosum*)**: Very resilient and purifies air.\n"
-                "2. **Boston Fern (*Nephrolepis exaltata*)**: Lush green fronds; loves bathroom humidity.\n"
-                "3. **Calathea / Prayer Plant**: Exquisite patterned foliage that folds up at night.\n"
-                "4. **Areca Palm / Parlor Palm**: Elegant tropical fronds with zero toxicity.\n"
-                "5. **Peperomia (Watermelon / Peperomia obtusifolia)**: Waxy succulent leaves; safe for pets.\n\n"
-                "⚠️ *Toxic to avoid around curious pets: Lilies, Pothos, Dieffenbachia, and Philodendrons.*"
-            )
-        if any(k in q for k in ['low light', 'dark', 'bedroom', 'dilim', 'loob ng bahay', 'indoor']):
-            return (
-                "🌑 **Best Houseplants for Low-Light & Shady Rooms:**\n\n"
-                "1. **ZZ Plant (*Zamioculcas*)**: Thrives on neglect; survives under fluorescent lights.\n"
-                "2. **Snake Plant (*Sansevieria*)**: Purifies indoor air at night; water only once a month.\n"
-                "3. **Golden Pothos**: Fast-growing vining plant that adapts to low light.\n"
-                "4. **Cast Iron Plant (*Aspidistra*)**: True to its name, virtually indestructible.\n"
-                "5. **Peace Lily (*Spathiphyllum*)**: Glossy green leaves with graceful white flowers.\n\n"
-                "💡 *Tip: Plants in low light drink water slower. Allow soil to dry out longer between waterings!*"
-            )
-        if any(k in q for k in ['mosquito', 'lamok', 'repel']):
-            return (
-                "🦟 **Top Natural Mosquito-Repelling Plants:**\n\n"
-                "1. **Citronella Grass**: Natural citrus aroma that masks human scent from mosquitoes.\n"
-                "2. **Lemongrass (Tanglad)**: High citronellal content; great for patio containers.\n"
-                "3. **Marigold (Amarillo)**: Contains pyrethrum compound that bugs dislike.\n"
-                "4. **Rosemary & Basil**: Potent essential oils act as a natural insect repellent.\n"
-                "5. **Peppermint**: Clean refreshing scent that repels mosquitoes, spiders, and ants.\n\n"
-                "💡 *Crush leaves gently between fingers to release essential oils for maximum effectiveness!*"
-            )
+    # 18. SOIL & REPOTTING GENERAL
+    if any(k in q for k in ['soil', 'potting mix', 'lupa', 'fertilizer', 'pataba', 'repot', 'repotting', 'compost']):
         return (
-            "🌱 **Top Recommended Plants for Beginners & Home Gardens:**\n\n"
-            "1. **Snake Plant (*Sansevieria*)**: Almost impossible to kill; needs water only every 2–3 weeks.\n"
-            "2. **Golden Pothos**: Fast trailing vines that clearly tell you when they need water by drooping slightly.\n"
-            "3. **ZZ Plant (*Zamioculcas*)**: Thick glossy leaves; thrives in low light with minimal care.\n"
-            "4. **Monstera Deliciosa**: Iconic tropical split-leaf foliage for bright living rooms.\n"
-            "5. **Spider Plant**: Hardy, fast-growing, and 100% pet-safe.\n"
-            "6. **Malunggay (*Moringa*)**: The ultimate backyard tree for delicious, vitamin-rich meals.\n\n"
-            "✨ *Which spot are you looking to decorate? (e.g., sunny outdoor balcony, office desk, or shaded bedroom)*"
+            "🪴 **Potting Soil & Repotting Guidelines**\n\n"
+            "• **Standard Tropical Mix Recipe**\n"
+            "  40% garden soil, 30% perlite or carbonized rice hull (CRH), 20% coco coir, 10% compost.\n\n"
+            "• **When to Repot**\n"
+            "  Roots poke through drainage holes, water runs straight through without absorbing, or growth stalls during the warm season.\n\n"
+            "• **Pot Sizing**\n"
+            "  Always choose a new container only 1–2 inches wider than the current pot."
         )
 
-    # 11. GENERAL BOTANICAL INQUIRY / DYNAMIC TOPIC RESPONSE
-    clean_q = message.strip()
-    return (
-        f"🌿 **Botanical Advice on: \"{clean_q}\"**\n\n"
-        "Here are key practical guidelines tailored to your plant inquiry:\n\n"
-        "• **Balance the 3 Essentials**: Every plant thrives when **Light**, **Moisture**, and **Airy Soil Drainage** are properly aligned.\n"
-        "• **Moisture Management**: Most plant issues stem from overwatering. Always allow the top 1–2 inches of soil to dry before watering again, and ensure containers have drainage holes.\n"
-        "• **Tropical Sun & Ventilation**: Provide bright, indirect sunlight and good air movement to ward off fungal infections and spider mites.\n"
-        "• **Nutrient Support**: Feed lightly with organic compost or diluted liquid fertilizer once a month during active growth.\n\n"
-        "💡 *If you'd like advice on a specific plant, let me know the name (e.g., Bayabas, Monstera, Orchids, Malunggay, Snake Plant, or Rose) and whether you're growing it indoors or outdoors!*"
+    # 19. INSUFFICIENT INFORMATION HANDLING
+    # If the query is vague, lacks plant name, symptoms, or actionable context
+    is_vague = (
+        any(k in q for k in [
+            'is my plant', 'whats wrong with my plant', "what's wrong with my plant",
+            'is my plant ok', 'is my plant okay', 'is it dying', 'is my plant dying',
+            'how is my plant', 'help my plant', 'anong problema', 'okay lang ba ang halaman'
+        ]) or
+        (not profile and len(raw_msg.split()) <= 6 and not any(k in q for k in [
+            'yellow', 'brown', 'curl', 'wilt', 'pest', 'bug', 'water', 'light', 'soil',
+            'propagate', 'easiest', 'recommend', 'pet', 'mosquito'
+        ]))
     )
+    if is_vague:
+        return (
+            "I can't determine that confidently from the information provided.\n\n"
+            "To give you accurate guidance, please let me know:\n"
+            "• The plant name or species (or upload a clear photo)\n"
+            "• What symptoms or changes you are noticing (e.g., leaf discoloration, wilting, spots)\n"
+            "• Its current growing environment (indoor vs. outdoor, light exposure, watering routine)"
+        )
+
+    # 20. DIRECT GENERAL PLANT CARE GUIDELINES (No generic lecture, focused and practical)
+    return (
+        "🌿 **Essential Plant Care Guidelines**\n\n"
+        "• **Moisture**: Check the top 1–2 inches of soil with your finger before watering. Only water when dry, and always use pots with drainage holes.\n"
+        "• **Lighting**: Position plants in bright, indirect sunlight away from harsh midday direct sun.\n"
+        "• **Drainage & Soil**: Use an airy, well-draining potting mix containing pumice, perlite, or rice hull to prevent root suffocation."
+    )
+
