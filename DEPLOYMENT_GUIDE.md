@@ -31,6 +31,7 @@ You need a remote PostgreSQL database that remains active 24/7. **Supabase** or 
    ```text
    postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
    ```
+   *(Replace `[YOUR-PASSWORD]` with the database password you created in step 3).*
    *(For project `ujqtfdlbnsrihmaejmhqm`, it will be: `postgresql://postgres.ujqtfdlbnsrihmaejmhqm:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres`).*
 
 ### Option B: Using Neon
